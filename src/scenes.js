@@ -54,12 +54,22 @@ function setPortrait(imgEl, characterId, state = 'default') {
     return;
   }
   const path = c.portraits?.[state] || c.portrait;
-  imgEl.src = path;
-  imgEl.onerror = () => {
+  imgEl.dataset.char = characterId;
+
+  // Hide immediately so old face doesn't linger while new image loads
+  imgEl.style.opacity = '0';
+
+  const probe = new Image();
+  probe.onload = () => {
+    imgEl.src = path;
+    imgEl.style.opacity = '1';
+  };
+  probe.onerror = () => {
     imgEl.src = makePlaceholderPortrait(characterId);
     imgEl.onerror = null;
+    imgEl.style.opacity = '1';
   };
-  imgEl.dataset.char = characterId;
+  probe.src = path;
 }
 
 /**

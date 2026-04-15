@@ -316,6 +316,7 @@ html, body {
   border: 3px solid var(--amber-dim);
   display: block;
   background: var(--noir-panel);
+  transition: opacity 0.2s ease;
 }
 
 #dialogue-speaker-name {
@@ -554,7 +555,7 @@ html, body {
   padding: 12px;
   overflow-y: auto;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 15px;
   display: flex;
   flex-direction: column;
 }
@@ -572,7 +573,7 @@ html, body {
   border: 1px solid #0a2010;
   color: #00ff41;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   padding: 6px 10px;
   outline: none;
 }
@@ -584,7 +585,7 @@ html, body {
   border: 1px solid #0a4020;
   color: #00ff41;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   padding: 6px 12px;
   cursor: pointer;
   letter-spacing: 1px;
@@ -610,8 +611,8 @@ html, body {
 }
 .log-line.hidden-line { display: none; }
 
-.log-time { color: #336633; flex-shrink: 0; width: 80px; }
-.log-user { color: #66aaff; flex-shrink: 0; width: 80px; }
+.log-time { color: #336633; flex-shrink: 0; width: 90px; }
+.log-user { color: #66aaff; flex-shrink: 0; width: 100px; }
 .log-msg  { color: #00cc33; flex: 1; }
 
 .log-suspect-A .log-user { color: var(--suspect-a); }
@@ -626,7 +627,7 @@ html, body {
 
 .findings-title {
   color: var(--amber);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   margin-bottom: 12px;
   border-bottom: 1px solid var(--noir-border);
@@ -634,7 +635,7 @@ html, body {
 }
 
 .finding-item {
-  font-size: 11px;
+  font-size: 13px;
   padding: 8px;
   margin-bottom: 6px;
   border: 1px dashed var(--noir-border);
