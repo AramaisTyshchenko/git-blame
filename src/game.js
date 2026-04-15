@@ -330,10 +330,12 @@ function runAct3() {
   playDialogue(ACT3_INTRO, 'villain_forum', () => {
     playDialogue(ACT3_PUZZLE_INTRO, 'villain_forum', () => {
       showPuzzle(3, 'villain_forum', () => {
-        playDialogue(ACT3_OUTRO, 'villain_forum', () => {
-          GameState.puzzlesDone.push(3);
-          GameState.save();
-          startAct(4);
+        showVideoClip('assets/video/misha_crying.mp4', 'Тим часом... у Міші вдома', () => {
+          playDialogue(ACT3_OUTRO, 'villain_forum', () => {
+            GameState.puzzlesDone.push(3);
+            GameState.save();
+            startAct(4);
+          });
         });
       });
     });
@@ -408,6 +410,41 @@ function showPuzzle(puzzleNum, bgScene, onComplete) {
       case 3: Puzzles.initCipher(container, onComplete); break;
       case 4: Puzzles.initTriage(container, onComplete); break;
     }
+  });
+}
+
+// ─────────────────────────────────────────────────────────
+// VIDEO CLIP
+// Shows a full-screen video with a title caption.
+// Advances automatically when the video ends, or on click/tap to skip.
+// ─────────────────────────────────────────────────────────
+
+function showVideoClip(src, title, cb) {
+  const titleEl  = document.getElementById('video-clip-title');
+  const videoEl  = document.getElementById('video-clip-player');
+  const screenEl = document.getElementById('screen-video-clip');
+
+  titleEl.textContent = title || '';
+  videoEl.src = src;
+
+  let done = false;
+  function advance() {
+    if (done) return;
+    done = true;
+    videoEl.onended = null;
+    videoEl.onerror = null;
+    videoEl.pause();
+    screenEl.onclick = null;
+    if (cb) cb();
+  }
+
+  videoEl.onended = advance;
+  videoEl.onerror = advance; // if file is missing, skip gracefully
+
+  showScreen('video-clip', () => {
+    videoEl.currentTime = 0;
+    videoEl.play().catch(() => {}); // autoplay may be blocked; clicked advance still works
+    screenEl.onclick = advance;
   });
 }
 

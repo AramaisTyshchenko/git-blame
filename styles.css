@@ -1473,6 +1473,63 @@ html, body {
 
 
 /* ═══════════════════════════════════════════════════════════
+   VIDEO CLIP SCREEN
+   ═══════════════════════════════════════════════════════════ */
+#screen-video-clip {
+  background: #000;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.video-clip-bg {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 0;
+}
+
+.video-clip-title {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 3px;
+  color: var(--amber-dim);
+  text-transform: uppercase;
+  z-index: 10;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+}
+
+#video-clip-player {
+  position: relative;
+  z-index: 5;
+  width: min(520px, 80vw);
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+  display: block;
+  border: 2px solid var(--amber-dim);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), 0 0 20px rgba(240, 165, 0, 0.1);
+}
+
+.video-clip-skip {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--white-dim);
+  letter-spacing: 2px;
+  z-index: 10;
+  pointer-events: none;
+  animation: blink 1.4s infinite;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {

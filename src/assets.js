@@ -71,14 +71,14 @@ const CHARACTERS = {
     id: 'ivan',
     name: 'Іван',
     nameEn: 'Ivan',
-    role: 'QA Інженер · 20+ · Молодший',
+    role: 'QA Інженер · Data Scraper · 30+',
     color: '#9b59b6',
     portrait: 'assets/portraits/ivan.png',
     portraits: {
       default:      'assets/portraits/ivan.png',
       enthusiastic: 'assets/portraits/ivan.png',
     },
-    bio: 'Все — КРИТИЧНО. Ентузіазм рівня 9000.',
+    bio: 'Автоматизує все, що рухається. Парсить дані поки інші сплять.',
   },
   anya: {
     id: 'anya',
