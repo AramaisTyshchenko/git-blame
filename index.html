@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>GIT BLAME — 5 Років Команди</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Telegram Mini App SDK (optional — works without it in browser too) -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+  <div id="game-root">
+
+    <!-- ═══════════════════ TITLE SCREEN ═══════════════════ -->
+    <div id="screen-title" class="screen active">
+      <div class="title-bg"></div>
+      <div class="title-content">
+        <div class="title-ascii">
+          <pre>
+  ██████╗ ██╗████████╗    ██████╗ ██╗      █████╗ ███╗   ███╗███████╗
+ ██╔════╝ ██║╚══██╔══╝    ██╔══██╗██║     ██╔══██╗████╗ ████║██╔════╝
+ ██║  ███╗██║   ██║       ██████╔╝██║     ███████║██╔████╔██║█████╗
+ ██║   ██║██║   ██║       ██╔══██╗██║     ██╔══██║██║╚██╔╝██║██╔══╝
+ ╚██████╔╝██║   ██║       ██████╔╝███████╗██║  ██║██║ ╚═╝ ██║███████╗
+  ╚═════╝ ╚═╝   ╚═╝       ╚═════╝ ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝╚══════╝
+          </pre>
+        </div>
+        <div class="title-subtitle">Детективна гра до 5-річчя команди «Aramais»</div>
+        <div class="title-tagline">"Хтось злив репо. Хтось завжди зливає."</div>
+        <div class="title-warning">⚠ Будь-який збіг з реальними особами є суто випадковим. Ну майже.</div>
+        <button id="btn-start" class="btn-primary">▶ ПОЧАТИ РОЗСЛІДУВАННЯ</button>
+        <button id="btn-credits" class="btn-secondary">Про гру</button>
+      </div>
+      <div class="title-footer">v1.0 · 2026 · Зроблено з AI і стражданням</div>
+    </div>
+
+    <!-- ═══════════════════ VILLAIN REVEAL ═══════════════════ -->
+    <div id="screen-villain-reveal" class="screen">
+      <div class="scene-bg" id="villain-reveal-bg"></div>
+      <div class="villain-reveal-content">
+        <div class="vr-title">УВАГА! ЗЛОЧИНЦІ ЦІЄЇ СПРАВИ:</div>
+        <div class="vr-suspects">
+          <div class="suspect-card" id="suspect-1">
+            <div class="suspect-portrait-wrap">
+              <img class="suspect-portrait villain-shadow" id="suspect-1-portrait" src="" alt="">
+              <div class="suspect-redacted">███████</div>
+            </div>
+            <div class="suspect-name" id="suspect-1-name">???</div>
+            <div class="suspect-role">Підозрюваний А</div>
+          </div>
+          <div class="suspect-divider">+</div>
+          <div class="suspect-card" id="suspect-2">
+            <div class="suspect-portrait-wrap">
+              <img class="suspect-portrait villain-shadow" id="suspect-2-portrait" src="" alt="">
+              <div class="suspect-redacted">███████</div>
+            </div>
+            <div class="suspect-name" id="suspect-2-name">???</div>
+            <div class="suspect-role">Підозрюваний Б</div>
+          </div>
+        </div>
+        <div class="vr-disclaimer">( Справжня справа. Справжні злочинці. Можна пробачити — але не забути. )</div>
+        <button id="btn-reveal-start" class="btn-primary">🔍 РОЗПОЧАТИ СПРАВУ</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ DIALOGUE BOX ═══════════════════ -->
+    <div id="screen-dialogue" class="screen">
+      <div class="scene-bg" id="dialogue-bg"></div>
+      <div class="dialogue-overlay"></div>
+      <div id="dialogue-box">
+        <div id="dialogue-portrait-wrap">
+          <img id="dialogue-portrait" src="" alt="">
+          <div id="dialogue-speaker-name"></div>
+        </div>
+        <div id="dialogue-text-area">
+          <div id="dialogue-text"></div>
+          <div id="dialogue-advance">▼ натисніть для продовження</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ PUZZLE CONTAINER ═══════════════════ -->
+    <div id="screen-puzzle" class="screen">
+      <div class="scene-bg" id="puzzle-bg"></div>
+      <div id="puzzle-header">
+        <div id="puzzle-act-label"></div>
+        <div id="puzzle-title"></div>
+        <div id="puzzle-hint-btn">💡 Підказка</div>
+      </div>
+      <div id="puzzle-container"></div>
+      <div id="puzzle-hint-box" class="hidden"></div>
+    </div>
+
+    <!-- ═══════════════════ ACT TRANSITION ═══════════════════ -->
+    <div id="screen-act-transition" class="screen">
+      <div class="act-transition-content">
+        <div id="act-number"></div>
+        <div id="act-title"></div>
+        <div id="act-description"></div>
+        <button id="btn-act-continue" class="btn-primary">Далі →</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ ENDING ═══════════════════ -->
+    <div id="screen-ending" class="screen">
+      <div class="ending-bg"></div>
+      <div class="ending-content">
+        <div class="ending-badge">✔ СПРАВУ ЗАКРИТО</div>
+        <div class="ending-title">П'ять Років.<br>Одна Команда.<br>Нульова Терпимість до Багів.</div>
+        <div id="ending-group-portrait" class="group-portrait"></div>
+        <div class="ending-members" id="ending-members-list"></div>
+        <div class="ending-text" id="ending-final-text"></div>
+        <div class="ending-buttons">
+          <button id="btn-easter-egg" class="btn-primary">⚔ КОЗАКИ: ЗАХИСТ ЧАТУ</button>
+          <button id="btn-replay" class="btn-secondary">↺ Нова справа</button>
+          <button id="btn-credits-end" class="btn-secondary">Титри</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ EASTER EGG: COSSACKS MINIGAME ═══════════════════ -->
+    <div id="screen-cossacks" class="screen">
+      <canvas id="cossacks-canvas"></canvas>
+      <div id="cossacks-ui">
+        <div id="cossacks-timer">30</div>
+        <div id="cossacks-score">0 знищено</div>
+        <div id="cossacks-lives">❤❤❤</div>
+      </div>
+      <div id="cossacks-overlay" class="hidden">
+        <div id="cossacks-result"></div>
+        <button id="btn-cossacks-end" class="btn-primary">Назад до команди</button>
+      </div>
+    </div>
+
+    <!-- ═══════════════════ CREDITS ═══════════════════ -->
+    <div id="screen-credits" class="screen">
+      <div class="credits-scroll">
+        <div class="credits-content" id="credits-content"></div>
+      </div>
+      <button id="btn-credits-back" class="btn-secondary credits-back-btn">← Назад</button>
+    </div>
+
+    <!-- ═══════════════════ TRANSITION OVERLAY ═══════════════════ -->
+    <div id="transition-overlay"></div>
+
+    <!-- ═══════════════════ NOTIFICATION ═══════════════════ -->
+    <div id="notification" class="hidden"></div>
+
+  </div><!-- #game-root -->
+
+  <script src="src/assets.js"></script>
+  <script src="src/dialogue.js"></script>
+  <script src="src/puzzles.js"></script>
+  <script src="src/scenes.js"></script>
+  <script src="src/game.js"></script>
+</body>
+</html>
