@@ -347,7 +347,31 @@ const AudioManager = (() => {
     Object.keys(activeSources).forEach(k => stop(k, fadeOut));
   }
 
-  return { play, stop, stopAll, load };
+  // ── Mobile audio unlock ──────────────────────────────────
+  // iOS / Android WebView (incl. Telegram) suspend AudioContext
+  // until a direct user gesture. We must call resume() synchronously
+  // inside that gesture — async play() is too late.
+  function unlock() {
+    const ctx = getContext();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+  }
+
+  // Attach once to the earliest possible user gesture.
+  // 'touchstart' fires before 'click' on mobile, so we catch both.
+  (function attachUnlock() {
+    const events = ['touchstart', 'touchend', 'click', 'keydown'];
+    function handler() {
+      unlock();
+      events.forEach(e => document.removeEventListener(e, handler));
+    }
+    events.forEach(e =>
+      document.addEventListener(e, handler, { once: false, passive: true })
+    );
+  })();
+
+  return { play, stop, stopAll, load, unlock };
 })();
 
 // ─────────────────────────────────────────────────────────
