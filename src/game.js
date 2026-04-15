@@ -253,10 +253,7 @@ function playDialogue(sequence, bgScene, cb) {
       } else {
         portraitEl.style.display = 'block';
         const portraitState = line.portrait || 'default';
-        portraitEl.src = getPortraitSrc(line.speaker, portraitState);
-        portraitEl.onerror = () => {
-          portraitEl.src = makePlaceholderPortrait(line.speaker);
-        };
+        Scenes.setPortrait(portraitEl, line.speaker, portraitState);
         speakerEl.textContent = char.name.toUpperCase();
         speakerEl.style.color = char.color;
       }
