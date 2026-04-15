@@ -308,6 +308,9 @@ const AudioManager = (() => {
     const buf = await load(key);
     if (!buf) return;
 
+    // If this looping track is already active, don't restart it
+    if (loop && activeSources[key]) return;
+
     stop(key);
 
     const source = ctx.createBufferSource();
