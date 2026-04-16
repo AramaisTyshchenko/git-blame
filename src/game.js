@@ -249,9 +249,11 @@ function playDialogue(sequence, bgScene, cb) {
       const char = CHARACTERS[line.speaker];
       if (line.speaker === 'narrator' || !char) {
         portraitEl.style.display = 'none';
+        portraitEl.classList.remove('is-talking');
         speakerEl.textContent = '';
       } else {
         portraitEl.style.display = 'block';
+        portraitEl.classList.add('is-talking');
         const portraitState = line.portrait || 'default';
         Scenes.setPortrait(portraitEl, line.speaker, portraitState);
         speakerEl.textContent = char.name.toUpperCase();
