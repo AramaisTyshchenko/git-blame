@@ -10,6 +10,9 @@
 
 const STATE_KEY = 'git-blame-v1';
 
+// Set to true to enable face animations (CSS overlays + D-ID/SadTalker video)
+const FACE_ANIMATION_ENABLED = false;
+
 const GameState = {
   act: 0,            // 0 = title, 1–5 = acts
   phase: 'title',    // title | villain_reveal | dialogue | puzzle | transition | ending | cossacks | credits
@@ -215,15 +218,22 @@ function showActTransition(actIndex, cb) {
 function playDialogue(sequence, bgScene, cb) {
   const clean = sequence.filter(l => l.speaker || l.type);
   let idx = 0;
+  let prevSpeaker = null; // Track speaker changes for entrance animation
 
-  const portraitEl = document.getElementById('dialogue-portrait');
-  const speakerEl  = document.getElementById('dialogue-speaker-name');
-  const textEl     = document.getElementById('dialogue-text');
-  const bgEl       = document.getElementById('dialogue-bg');
+  const portraitEl  = document.getElementById('dialogue-portrait');
+  const portraitWrap = document.getElementById('dialogue-portrait-wrap');
+  const speakerEl   = document.getElementById('dialogue-speaker-name');
+  const textEl      = document.getElementById('dialogue-text');
+  const bgEl        = document.getElementById('dialogue-bg');
 
   if (bgScene) bgEl.style.backgroundImage = `url('${getBgSrc(bgScene)}')`;
 
   function advance() {
+    // Stop previous voice & mouth animation before advancing
+    VoiceManager.stop();
+    PortraitAnimator.stopSpeaking();
+    VideoPortrait.setTalking(false);
+
     while (idx < clean.length) {
       const line = clean[idx++];
 
@@ -250,6 +260,9 @@ function playDialogue(sequence, bgScene, cb) {
       if (line.speaker === 'narrator' || !char) {
         portraitEl.style.display = 'none';
         speakerEl.textContent = '';
+        PortraitAnimator.detach();
+        VideoPortrait.detach();
+        prevSpeaker = null;
       } else {
         portraitEl.style.display = 'block';
         const portraitState = line.portrait || 'default';
@@ -259,18 +272,71 @@ function playDialogue(sequence, bgScene, cb) {
         };
         speakerEl.textContent = char.name.toUpperCase();
         speakerEl.style.color = char.color;
+
+        // Play entrance animation when the speaker changes
+        const speakerChanged = line.speaker !== prevSpeaker;
+        prevSpeaker = line.speaker;
+
+        // Animated portrait: try D-ID video first, fall back to CSS overlays
+        PortraitAnimator.detach();
+        VideoPortrait.detach();
+        const lineText = injectVillains(line.text);
+
+        // Async: attach video (probes for files), then set up animation
+        VideoPortrait.attach(portraitWrap, portraitEl, line.speaker).then((useFallback) => {
+          if (!FACE_ANIMATION_ENABLED) {
+            // Face animation & voice disabled — static portrait, text only
+            return;
+          }
+          // Always attach CSS overlays (blinking + breathing) as baseline.
+          // In video mode, D-ID covers them (higher z-index) when talking;
+          // when idle, the CSS overlays animate the static portrait.
+          PortraitAnimator.attach(portraitWrap, line.speaker);
+          PortraitAnimator.startBlinking();
+          if (speakerChanged) PortraitAnimator.playEntrance();
+
+          // TTS voice — sync mouth/video to speech
+          VoiceManager.speak(
+            lineText,
+            line.speaker,
+            () => {
+              // onStart
+              if (useFallback) {
+                PortraitAnimator.startSpeaking();
+              } else {
+                // D-ID video takes over — pause CSS mouth (blink continues beneath)
+                PortraitAnimator.stopSpeaking();
+                VideoPortrait.setTalking(true);
+              }
+            },
+            () => {
+              // onEnd
+              if (useFallback) {
+                PortraitAnimator.stopSpeaking();
+              } else {
+                VideoPortrait.setTalking(false);
+                // CSS blinking is still running beneath
+              }
+            }
+          );
+        });
       }
 
       textEl.textContent = injectVillains(line.text);
       return; // wait for click
     }
 
-    // Sequence done
+    // Sequence done — clean up
+    VoiceManager.stop();
+    PortraitAnimator.detach();
+    VideoPortrait.detach();
     if (cb) cb();
   }
 
   showScreen('dialogue', () => advance());
-  document.getElementById('screen-dialogue').onclick = () => {
+  document.getElementById('screen-dialogue').onclick = (e) => {
+    // Don't advance if clicking the voice toggle button
+    if (e.target.id === 'voice-toggle') return;
     AudioManager.play('sfx_click');
     advance();
   };
@@ -687,6 +753,26 @@ function showCredits(returnScreen) {
 }
 
 // ─────────────────────────────────────────────────────────
+// VOICE TOGGLE
+// ─────────────────────────────────────────────────────────
+
+function initVoiceToggle() {
+  const btn = document.getElementById('voice-toggle');
+  if (!btn) return;
+
+  function updateIcon() {
+    btn.textContent = VoiceManager.isEnabled() ? '🔊' : '🔇';
+  }
+  updateIcon();
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation(); // prevent dialogue advance
+    VoiceManager.setEnabled(!VoiceManager.isEnabled());
+    updateIcon();
+  });
+}
+
+// ─────────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────────
 
@@ -711,6 +797,9 @@ function init() {
     initTitleScreen();
     preloadAll(); // non-blocking audio preload
   });
+
+  // Voice toggle button
+  initVoiceToggle();
 }
 
 window.addEventListener('DOMContentLoaded', init);

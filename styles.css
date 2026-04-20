@@ -303,19 +303,138 @@ html, body {
   min-height: 280px;
 }
 
-#dialogue-portrait-wrap {
+#dialogue-portrait-col {
   flex-shrink: 0;
   text-align: center;
   margin-right: 28px;
+}
+
+#dialogue-portrait-wrap {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  overflow: hidden;
+  border: 3px solid var(--amber-dim);
+  background: var(--noir-panel);
 }
 
 #dialogue-portrait {
   width: 180px;
   height: 180px;
   object-fit: cover;
-  border: 3px solid var(--amber-dim);
   display: block;
-  background: var(--noir-panel);
+  transition: opacity 0.2s ease;
+}
+
+#dialogue-portrait-video {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ── Portrait Animation Overlays ── */
+
+/* --- Eyelids: crescent/arc shape for realistic blink --- */
+.portrait-eyelid {
+  border-radius: 50% 50% 50% 50% / 70% 70% 30% 30%;
+  transform: scaleY(0);
+  transform-origin: center top;
+  transition: transform 0.07s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.92;
+  /* subtle shadow to sell the depth of a closing lid */
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.18);
+}
+.portrait-eyelid.blink {
+  transform: scaleY(1);
+  transition: transform 0.06s cubic-bezier(0.7, 0, 1, 0.6);
+}
+/* half-blink state for double-blink effect */
+.portrait-eyelid.half-blink {
+  transform: scaleY(0.5);
+  transition: transform 0.05s ease-out;
+}
+
+/* --- Mouth: multi-frame open with shaped oval --- */
+.portrait-mouth {
+  border-radius: 50% 50% 45% 45% / 40% 40% 60% 60%;
+  transform: scaleY(0);
+  transform-origin: center center;
+  transition: transform 0.05s ease-in-out, border-radius 0.05s ease;
+  opacity: 0;
+}
+/* slight opening — viseme "m/b" */
+.portrait-mouth.mouth-narrow {
+  transform: scaleY(0.4) scaleX(0.7);
+  opacity: 0.8;
+}
+/* medium opening — viseme "e/a" */
+.portrait-mouth.mouth-open {
+  transform: scaleY(0.85);
+  opacity: 0.9;
+}
+/* wide opening — viseme "ah/oh" */
+.portrait-mouth.mouth-wide {
+  transform: scaleY(1) scaleX(1.05);
+  border-radius: 50%;
+  opacity: 0.95;
+}
+
+/* --- Breathing: gentle scale pulse on the portrait image --- */
+@keyframes portrait-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.008, 1.012); }
+}
+#dialogue-portrait.breathing {
+  animation: portrait-breathe 3.5s ease-in-out infinite;
+  transform-origin: center 60%; /* breathe from chest area */
+}
+
+/* --- Portrait entrance animation --- */
+@keyframes portrait-enter {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.96); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+#dialogue-portrait-wrap.portrait-entering {
+  animation: portrait-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+#dialogue-portrait-wrap.portrait-entering #dialogue-portrait {
+  animation: none; /* pause breathing during entrance */
+}
+
+.face-debug-rect {
+  border: 2px solid red;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* ── Voice Toggle Button ── */
+
+#voice-toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  background: rgba(10, 14, 20, 0.85);
+  border: 1px solid var(--amber-dim);
+  color: var(--amber);
+  font-size: 20px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  padding: 0;
+  line-height: 1;
+}
+#voice-toggle:hover {
+  opacity: 0.8;
+  border-color: var(--amber);
 }
 
 #dialogue-speaker-name {
@@ -554,7 +673,7 @@ html, body {
   padding: 12px;
   overflow-y: auto;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 15px;
   display: flex;
   flex-direction: column;
 }
@@ -572,7 +691,7 @@ html, body {
   border: 1px solid #0a2010;
   color: #00ff41;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   padding: 6px 10px;
   outline: none;
 }
@@ -584,7 +703,7 @@ html, body {
   border: 1px solid #0a4020;
   color: #00ff41;
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   padding: 6px 12px;
   cursor: pointer;
   letter-spacing: 1px;
@@ -610,8 +729,8 @@ html, body {
 }
 .log-line.hidden-line { display: none; }
 
-.log-time { color: #336633; flex-shrink: 0; width: 80px; }
-.log-user { color: #66aaff; flex-shrink: 0; width: 80px; }
+.log-time { color: #336633; flex-shrink: 0; width: 90px; }
+.log-user { color: #66aaff; flex-shrink: 0; width: 100px; }
 .log-msg  { color: #00cc33; flex: 1; }
 
 .log-suspect-A .log-user { color: var(--suspect-a); }
@@ -626,7 +745,7 @@ html, body {
 
 .findings-title {
   color: var(--amber);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 2px;
   margin-bottom: 12px;
   border-bottom: 1px solid var(--noir-border);
@@ -634,7 +753,7 @@ html, body {
 }
 
 .finding-item {
-  font-size: 11px;
+  font-size: 13px;
   padding: 8px;
   margin-bottom: 6px;
   border: 1px dashed var(--noir-border);
@@ -1473,6 +1592,63 @@ html, body {
 
 
 /* ═══════════════════════════════════════════════════════════
+   VIDEO CLIP SCREEN
+   ═══════════════════════════════════════════════════════════ */
+#screen-video-clip {
+  background: #000;
+  flex-direction: column;
+  cursor: pointer;
+}
+
+.video-clip-bg {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  z-index: 0;
+}
+
+.video-clip-title {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 15px;
+  letter-spacing: 3px;
+  color: var(--amber-dim);
+  text-transform: uppercase;
+  z-index: 10;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba(0,0,0,0.8);
+}
+
+#video-clip-player {
+  position: relative;
+  z-index: 5;
+  width: min(520px, 80vw);
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+  display: block;
+  border: 2px solid var(--amber-dim);
+  box-shadow: 0 0 60px rgba(0, 0, 0, 0.9), 0 0 20px rgba(240, 165, 0, 0.1);
+}
+
+.video-clip-skip {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: var(--white-dim);
+  letter-spacing: 2px;
+  z-index: 10;
+  pointer-events: none;
+  animation: blink 1.4s infinite;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
@@ -1502,5 +1678,14 @@ html, body {
   }
 
   #dialogue-portrait { width: 80px; height: 80px; }
+  #dialogue-portrait-wrap { width: 80px; height: 80px; }
+  /* Scale down face overlays on mobile — landmarks are authored for 180px,
+     so we use CSS transform scale on the overlays container */
+  #dialogue-portrait-wrap .portrait-eyelid,
+  #dialogue-portrait-wrap .portrait-mouth {
+    transform-origin: center center;
+    /* Positions need JavaScript adjustment; CSS can't proportionally move absolute children.
+       The PortraitAnimator uses the container's actual offsetWidth to scale landmarks. */
+  }
   #dialogue-text { font-size: 14px; }
 }

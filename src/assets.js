@@ -12,6 +12,15 @@
 // CHARACTER MANIFEST
 // ─────────────────────────────────────────────────────────
 
+// Default face landmark positions (relative to 180×180 portrait)
+// Tuned for typical AI-generated headshot portraits
+const DEFAULT_FACE_LANDMARKS = {
+  leftEye:  { x: 56, y: 72, w: 22, h: 10 },
+  rightEye: { x: 102, y: 72, w: 22, h: 10 },
+  mouth:    { x: 72, y: 118, w: 36, h: 14 },
+  skinColor: '#c8a882',
+};
+
 const CHARACTERS = {
   aramais: {
     id: 'aramais',
@@ -19,13 +28,15 @@ const CHARACTERS = {
     nameEn: 'Aramais',
     role: 'Власник групи · Лондон',
     color: '#f0a500',
-    portrait: 'assets/portraits/aramais.png',
+    portrait: 'assets/portraits/aramais.jpg',
     portraits: {
-      default:    'assets/portraits/aramais.png',
-      worried:    'assets/portraits/aramais.png',
-      determined: 'assets/portraits/aramais.png',
+      default:    'assets/portraits/aramais.jpg',
+      worried:    'assets/portraits/aramais.jpg',
+      determined: 'assets/portraits/aramais.jpg',
     },
     bio: 'PhD, дрони, Варвік. Живе в Лондоні, але серцем в Україні.',
+    faceLandmarks: { leftEye: { x: 73, y: 60, w: 15, h: 6 }, rightEye: { x: 98, y: 59, w: 15, h: 6 }, mouth: { x: 83, y: 84, w: 23, h: 9 }, skinColor: '#c8a882' },
+    voice: { gender: 'male', pitch: 1.0, rate: 1.0 },   // 30+ male, balanced
   },
   taras: {
     id: 'taras',
@@ -33,13 +44,15 @@ const CHARACTERS = {
     nameEn: 'Taras',
     role: 'QA Сеньор · 40+ · Бойовий дід',
     color: '#e74c3c',
-    portrait: 'assets/portraits/taras.png',
+    portrait: 'assets/portraits/taras.jpg',
     portraits: {
-      default:     'assets/portraits/taras.png',
-      reading:     'assets/portraits/taras.png',
-      unimpressed: 'assets/portraits/taras.png',
+      default:     'assets/portraits/taras.jpg',
+      reading:     'assets/portraits/taras.jpg',
+      unimpressed: 'assets/portraits/taras.jpg',
     },
     bio: 'Два десятки в QA. Бачив все. Нічому не дивується.',
+    faceLandmarks: { leftEye: { x: 63, y: 67, w: 22, h: 10 }, rightEye: { x: 95, y: 68, w: 22, h: 10 }, mouth: { x: 71, y: 99, w: 36, h: 14 }, skinColor: '#c8a882' },
+    voice: { gender: 'male', pitch: 0.75, rate: 0.82 },  // 40+ male, deep & deliberate
   },
   zheka: {
     id: 'zheka',
@@ -47,12 +60,14 @@ const CHARACTERS = {
     nameEn: 'Zheka',
     role: 'QA Інженер · 30+',
     color: '#3498db',
-    portrait: 'assets/portraits/zheka.png',
+    portrait: 'assets/portraits/zheka.jpg',
     portraits: {
-      default: 'assets/portraits/zheka.png',
-      focused: 'assets/portraits/zheka.png',
+      default: 'assets/portraits/zheka.jpg',
+      focused: 'assets/portraits/zheka.jpg',
     },
     bio: 'Детальні звіти з виносками. Любить sticky-нотатки.',
+    faceLandmarks: { leftEye: { x: 76, y: 64, w: 22, h: 10 }, rightEye: { x: 113, y: 63, w: 22, h: 10 }, mouth: { x: 86, y: 94, w: 36, h: 14 }, skinColor: '#433e38' },
+    voice: { gender: 'male', pitch: 0.95, rate: 0.92 },  // 30+ male, calm & methodical
   },
   efim: {
     id: 'efim',
@@ -60,25 +75,29 @@ const CHARACTERS = {
     nameEn: 'Efim',
     role: 'QA Інженер · 30+',
     color: '#1abc9c',
-    portrait: 'assets/portraits/efim.png',
+    portrait: 'assets/portraits/efim.jpg',
     portraits: {
-      default: 'assets/portraits/efim.png',
-      precise: 'assets/portraits/efim.png',
+      default: 'assets/portraits/efim.jpg',
+      precise: 'assets/portraits/efim.jpg',
     },
     bio: 'Пише лише те, що потрібно. Кожне слово заслужене.',
+    faceLandmarks: { leftEye: { x: 65, y: 62, w: 22, h: 10 }, rightEye: { x: 108, y: 69, w: 22, h: 10 }, mouth: { x: 74, y: 110, w: 36, h: 14 }, skinColor: '#c8a882' },
+    voice: { gender: 'male', pitch: 0.9, rate: 0.88 },   // 30+ male, precise & measured
   },
   ivan: {
     id: 'ivan',
     name: 'Іван',
     nameEn: 'Ivan',
-    role: 'QA Інженер · 20+ · Молодший',
+    role: 'QA Інженер · Data Scraper · 30+',
     color: '#9b59b6',
-    portrait: 'assets/portraits/ivan.png',
+    portrait: 'assets/portraits/ivan.jpg',
     portraits: {
-      default:      'assets/portraits/ivan.png',
-      enthusiastic: 'assets/portraits/ivan.png',
+      default:      'assets/portraits/ivan.jpg',
+      enthusiastic: 'assets/portraits/ivan.jpg',
     },
-    bio: 'Все — КРИТИЧНО. Ентузіазм рівня 9000.',
+    bio: 'Автоматизує все, що рухається. Парсить дані поки інші сплять.',
+    faceLandmarks: { leftEye: { x: 62, y: 64, w: 22, h: 10 }, rightEye: { x: 92, y: 63, w: 22, h: 10 }, mouth: { x: 70, y: 94, w: 36, h: 14 }, skinColor: '#c8a882' },
+    voice: { gender: 'male', pitch: 1.15, rate: 1.12 },  // 20+ male, young & energetic
   },
   anya: {
     id: 'anya',
@@ -86,12 +105,14 @@ const CHARACTERS = {
     nameEn: 'Anya',
     role: 'QA Інженер · 30+',
     color: '#e91e8c',
-    portrait: 'assets/portraits/anya.png',
+    portrait: 'assets/portraits/anya.jpg',
     portraits: {
-      default: 'assets/portraits/anya.png',
-      sharp:   'assets/portraits/anya.png',
+      default: 'assets/portraits/anya.jpg',
+      sharp:   'assets/portraits/anya.jpg',
     },
     bio: 'Помічає те, що всі пропустили. Завжди.',
+    faceLandmarks: { leftEye: { x: 58, y: 71, w: 22, h: 10 }, rightEye: { x: 93, y: 73, w: 22, h: 10 }, mouth: { x: 69, y: 107, w: 32, h: 12 }, skinColor: '#c8a882' },
+    voice: { gender: 'female', pitch: 1.1, rate: 0.95 }, // 30+ female, sharp & composed
   },
   vitya: {
     id: 'vitya',
@@ -99,12 +120,14 @@ const CHARACTERS = {
     nameEn: 'Vitya',
     role: 'Радіофізик · 30+ · Патріот',
     color: '#27ae60',
-    portrait: 'assets/portraits/vitya.png',
+    portrait: 'assets/portraits/vitya.jpg',
     portraits: {
-      default:   'assets/portraits/vitya.png',
-      patriotic: 'assets/portraits/vitya.png',
+      default:   'assets/portraits/vitya.jpg',
+      patriotic: 'assets/portraits/vitya.jpg',
     },
     bio: 'Радіофізик. Ненавидить Путіна. Любить Україну. Завжди правий.',
+    faceLandmarks: { leftEye: { x: 64, y: 55, w: 22, h: 10 }, rightEye: { x: 94, y: 57, w: 18, h: 9 }, mouth: { x: 75, y: 83, w: 28, h: 11 }, skinColor: '#c8a882' },
+    voice: { gender: 'male', pitch: 0.85, rate: 1.1 },   // 30+ male, passionate & rapid
   },
   inessa: {
     id: 'inessa',
@@ -112,12 +135,14 @@ const CHARACTERS = {
     nameEn: 'Inessa',
     role: 'Продаж золота · 20+',
     color: '#f39c12',
-    portrait: 'assets/portraits/inessa.png',
+    portrait: 'assets/portraits/inessa.jpg',
     portraits: {
-      default: 'assets/portraits/inessa.png',
-      knowing: 'assets/portraits/inessa.png',
+      default: 'assets/portraits/inessa.jpg',
+      knowing: 'assets/portraits/inessa.jpg',
     },
     bio: 'Продає золото. Грає в козаків. Знає всі схеми.',
+    faceLandmarks: { leftEye: { x: 61, y: 63, w: 22, h: 10 }, rightEye: { x: 96, y: 63, w: 22, h: 10 }, mouth: { x: 76, y: 97, w: 28, h: 11 }, skinColor: '#c8a882' },
+    voice: { gender: 'female', pitch: 1.2, rate: 1.05 }, // 20+ female, young & bright
   },
   misha: {
     id: 'misha',
@@ -125,12 +150,14 @@ const CHARACTERS = {
     nameEn: 'Misha',
     role: 'Колишній учасник команди',
     color: '#e74c3c',
-    portrait: 'assets/portraits/misha.png',
+    portrait: 'assets/portraits/misha.jpg',
     portraits: {
-      default: 'assets/portraits/misha.png',
+      default: 'assets/portraits/misha.jpg',
     },
     bio: 'Дав нам сюжет для гри.',
     isFixedVillain: true,
+    faceLandmarks: { leftEye: { x: 47, y: 58, w: 22, h: 10 }, rightEye: { x: 103, y: 63, w: 22, h: 10 }, mouth: { x: 57, y: 98, w: 36, h: 14 }, skinColor: '#c8a882' },
+    voice: { gender: 'male', pitch: 0.7, rate: 0.88 },   // villain, low & menacing
   },
   sasha: {
     id: 'sasha',
@@ -138,12 +165,14 @@ const CHARACTERS = {
     nameEn: 'Sasha',
     role: 'Колишній учасник команди',
     color: '#8e44ad',
-    portrait: 'assets/portraits/sasha.png',
+    portrait: 'assets/portraits/sasha.jpg',
     portraits: {
-      default: 'assets/portraits/sasha.png',
+      default: 'assets/portraits/sasha.jpg',
     },
     bio: 'Дав нам сюжет для гри.',
     isFixedVillain: true,
+    faceLandmarks: { leftEye: { x: 50, y: 60, w: 22, h: 10 }, rightEye: { x: 103, y: 63, w: 22, h: 10 }, mouth: { x: 62, y: 101, w: 36, h: 14 }, skinColor: '#c8a882' },
+    voice: { gender: 'male', pitch: 0.65, rate: 0.85 },  // villain, deeper & sinister
   },
 };
 
@@ -152,12 +181,12 @@ const CHARACTERS = {
 // ─────────────────────────────────────────────────────────
 
 const BACKGROUNDS = {
-  warroom:       'assets/backgrounds/warroom.png',
-  warroom_party: 'assets/backgrounds/warroom_party.png',
-  terminal:      'assets/backgrounds/terminal.png',
-  villain_forum: 'assets/backgrounds/villain_forum.png',
-  bug_tracker:   'assets/backgrounds/bug_tracker.png',
-  dark_void:     'assets/backgrounds/dark_void.png',
+  warroom:       'assets/backgrounds/warroom.jpg',
+  warroom_party: 'assets/backgrounds/warroom_party.jpg',
+  terminal:      'assets/backgrounds/terminal.jpg',
+  villain_forum: 'assets/backgrounds/villain_forum.jpg',
+  bug_tracker:   'assets/backgrounds/bug_tracker.jpg',
+  dark_void:     'assets/backgrounds/dark_void.jpg',
 };
 
 // ─────────────────────────────────────────────────────────
@@ -308,6 +337,9 @@ const AudioManager = (() => {
     const buf = await load(key);
     if (!buf) return;
 
+    // If this looping track is already active, don't restart it
+    if (loop && activeSources[key]) return;
+
     stop(key);
 
     const source = ctx.createBufferSource();
@@ -344,7 +376,31 @@ const AudioManager = (() => {
     Object.keys(activeSources).forEach(k => stop(k, fadeOut));
   }
 
-  return { play, stop, stopAll, load };
+  // ── Mobile audio unlock ──────────────────────────────────
+  // iOS / Android WebView (incl. Telegram) suspend AudioContext
+  // until a direct user gesture. We must call resume() synchronously
+  // inside that gesture — async play() is too late.
+  function unlock() {
+    const ctx = getContext();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+  }
+
+  // Attach once to the earliest possible user gesture.
+  // 'touchstart' fires before 'click' on mobile, so we catch both.
+  (function attachUnlock() {
+    const events = ['touchstart', 'touchend', 'click', 'keydown'];
+    function handler() {
+      unlock();
+      events.forEach(e => document.removeEventListener(e, handler));
+    }
+    events.forEach(e =>
+      document.addEventListener(e, handler, { once: false, passive: true })
+    );
+  })();
+
+  return { play, stop, stopAll, load, unlock };
 })();
 
 // ─────────────────────────────────────────────────────────
@@ -374,6 +430,7 @@ function attachPortraitFallbacks() {
 // EXPORTS (global, no module system needed)
 // ─────────────────────────────────────────────────────────
 
+window.DEFAULT_FACE_LANDMARKS  = DEFAULT_FACE_LANDMARKS;
 window.CHARACTERS             = CHARACTERS;
 window.BACKGROUNDS            = BACKGROUNDS;
 window.AUDIO                  = AUDIO;

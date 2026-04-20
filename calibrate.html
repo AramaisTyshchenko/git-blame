@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Face Landmark Calibrator</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #1a1a2e; color: #eee; font-family: monospace; padding: 20px; }
+h1 { color: #f0a500; margin-bottom: 10px; font-size: 18px; }
+.info { color: #888; font-size: 12px; margin-bottom: 20px; }
+
+.char-grid { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 30px; }
+.char-btn { 
+  padding: 8px 16px; background: #2a2a4a; border: 2px solid #444; 
+  color: #eee; cursor: pointer; font-family: monospace; font-size: 13px;
+  border-radius: 4px; transition: all 0.2s;
+}
+.char-btn:hover { border-color: #f0a500; }
+.char-btn.active { border-color: #f0a500; background: #3a3a5a; color: #f0a500; }
+
+.editor { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
+.portrait-area { position: relative; }
+.portrait-area img { display: block; width: 360px; height: 360px; object-fit: cover; }
+.overlay-rect {
+  position: absolute; border: 2px solid red; cursor: move;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: red; font-weight: bold;
+}
+.overlay-rect.eye-left { border-color: #00ff88; color: #00ff88; }
+.overlay-rect.eye-right { border-color: #00aaff; color: #00aaff; }
+.overlay-rect.mouth-rect { border-color: #ff4488; color: #ff4488; }
+.overlay-fill { 
+  position: absolute; pointer-events: none; border-radius: 50%; opacity: 0.5;
+}
+.overlay-fill.eyelid-fill { background: var(--skin); }
+.overlay-fill.mouth-fill { background: rgba(30, 10, 10, 0.75); }
+
+.controls { min-width: 300px; }
+.control-group { margin-bottom: 16px; background: #2a2a4a; padding: 12px; border-radius: 6px; }
+.control-group h3 { color: #f0a500; font-size: 13px; margin-bottom: 8px; }
+.control-row { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.control-row label { width: 20px; text-align: right; font-size: 12px; color: #888; }
+.control-row input[type=range] { flex: 1; }
+.control-row .val { width: 30px; text-align: center; font-size: 12px; color: #f0a500; }
+
+.skin-picker { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.skin-picker input[type=color] { width: 40px; height: 24px; border: none; cursor: pointer; }
+
+.output { margin-top: 20px; }
+.output textarea { 
+  width: 100%; height: 120px; background: #111; color: #0f0; border: 1px solid #333;
+  font-family: monospace; font-size: 11px; padding: 8px; resize: vertical;
+}
+#copy-btn { 
+  margin-top: 8px; padding: 6px 16px; background: #f0a500; color: #000; 
+  border: none; cursor: pointer; font-family: monospace; font-weight: bold; border-radius: 4px;
+}
+#copy-all-btn { 
+  margin-top: 8px; margin-left: 8px; padding: 6px 16px; background: #27ae60; color: #fff; 
+  border: none; cursor: pointer; font-family: monospace; font-weight: bold; border-radius: 4px;
+}
+
+.crosshair { position: absolute; pointer-events: none; z-index: 100; }
+.crosshair-h, .crosshair-v { position: absolute; background: rgba(255,255,0,0.3); }
+.crosshair-h { left: 0; right: 0; height: 1px; }
+.crosshair-v { top: 0; bottom: 0; width: 1px; }
+.coord-display { 
+  position: absolute; top: 4px; left: 4px; background: rgba(0,0,0,0.7); 
+  color: #ff0; font-size: 11px; padding: 2px 6px; pointer-events: none; z-index: 101;
+}
+
+.note { color: #f0a500; font-size: 11px; margin-top: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<h1>🎯 Face Landmark Calibrator</h1>
+<div class="info">
+  Click a character → drag the colored rectangles to align with eyes &amp; mouth → copy the output.<br>
+  Coordinates are at 180×180 scale (half of the 360×360 display). Yellow crosshair shows mouse position.<br>
+  <strong>Green</strong> = Left Eye | <strong>Blue</strong> = Right Eye | <strong>Pink</strong> = Mouth
+</div>
+
+<div class="char-grid" id="char-grid"></div>
+
+<div class="editor">
+  <div class="portrait-area" id="portrait-area">
+    <img id="portrait-img" src="" alt="Select a character">
+    <div class="overlay-rect eye-left" id="rect-leftEye" data-key="leftEye">L</div>
+    <div class="overlay-fill eyelid-fill" id="fill-leftEye"></div>
+    <div class="overlay-rect eye-right" id="rect-rightEye" data-key="rightEye">R</div>
+    <div class="overlay-fill eyelid-fill" id="fill-rightEye"></div>
+    <div class="overlay-rect mouth-rect" id="rect-mouth" data-key="mouth">M</div>
+    <div class="overlay-fill mouth-fill" id="fill-mouth"></div>
+    <div class="crosshair" id="crosshair">
+      <div class="crosshair-h" id="ch-h"></div>
+      <div class="crosshair-v" id="ch-v"></div>
+    </div>
+    <div class="coord-display" id="coord-display">-</div>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <h3>👁 Left Eye (green)</h3>
+      <div class="control-row"><label>X</label><input type="range" min="0" max="180" id="le-x"><span class="val" id="le-x-val"></span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="0" max="180" id="le-y"><span class="val" id="le-y-val"></span></div>
+      <div class="control-row"><label>W</label><input type="range" min="4" max="60" id="le-w"><span class="val" id="le-w-val"></span></div>
+      <div class="control-row"><label>H</label><input type="range" min="2" max="30" id="le-h"><span class="val" id="le-h-val"></span></div>
+    </div>
+    <div class="control-group">
+      <h3>👁 Right Eye (blue)</h3>
+      <div class="control-row"><label>X</label><input type="range" min="0" max="180" id="re-x"><span class="val" id="re-x-val"></span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="0" max="180" id="re-y"><span class="val" id="re-y-val"></span></div>
+      <div class="control-row"><label>W</label><input type="range" min="4" max="60" id="re-w"><span class="val" id="re-w-val"></span></div>
+      <div class="control-row"><label>H</label><input type="range" min="2" max="30" id="re-h"><span class="val" id="re-h-val"></span></div>
+    </div>
+    <div class="control-group">
+      <h3>👄 Mouth (pink)</h3>
+      <div class="control-row"><label>X</label><input type="range" min="0" max="180" id="mo-x"><span class="val" id="mo-x-val"></span></div>
+      <div class="control-row"><label>Y</label><input type="range" min="0" max="180" id="mo-y"><span class="val" id="mo-y-val"></span></div>
+      <div class="control-row"><label>W</label><input type="range" min="4" max="80" id="mo-w"><span class="val" id="mo-w-val"></span></div>
+      <div class="control-row"><label>H</label><input type="range" min="2" max="30" id="mo-h"><span class="val" id="mo-h-val"></span></div>
+    </div>
+    <div class="control-group">
+      <h3>🎨 Skin Color</h3>
+      <div class="skin-picker">
+        <input type="color" id="skin-color" value="#c8a882">
+        <span id="skin-hex">#c8a882</span>
+      </div>
+      <div class="note">Pick from the forehead/cheek area of the portrait — this colors the eyelid overlay.</div>
+    </div>
+
+    <div class="output">
+      <h3 style="color:#f0a500;font-size:13px;margin-bottom:6px;">📋 Output (180×180 coords)</h3>
+      <textarea id="output" readonly></textarea>
+      <button id="copy-btn">Copy This Character</button>
+      <button id="copy-all-btn">Copy ALL Characters</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Character list — we'll read positions from here and update them
+const chars = [
+  'aramais', 'taras', 'zheka', 'efim', 'ivan', 'anya', 'vitya', 'inessa', 'misha', 'sasha'
+];
+
+// Stored landmarks per character (at 180×180 scale)
+const landmarks = {};
+chars.forEach(id => {
+  landmarks[id] = {
+    leftEye:  { x: 56, y: 72, w: 22, h: 10 },
+    rightEye: { x: 102, y: 72, w: 22, h: 10 },
+    mouth:    { x: 72, y: 118, w: 36, h: 14 },
+    skinColor: '#c8a882',
+  };
+});
+
+let currentChar = null;
+const SCALE = 2; // display at 360px, coords at 180px
+
+// Build character buttons
+const grid = document.getElementById('char-grid');
+chars.forEach(id => {
+  const btn = document.createElement('button');
+  btn.className = 'char-btn';
+  btn.textContent = id;
+  btn.dataset.id = id;
+  btn.onclick = () => selectChar(id);
+  grid.appendChild(btn);
+});
+
+// Elements
+const img = document.getElementById('portrait-img');
+const rectLE = document.getElementById('rect-leftEye');
+const rectRE = document.getElementById('rect-rightEye');
+const rectMO = document.getElementById('rect-mouth');
+const fillLE = document.getElementById('fill-leftEye');
+const fillRE = document.getElementById('fill-rightEye');
+const fillMO = document.getElementById('fill-mouth');
+const output = document.getElementById('output');
+const skinInput = document.getElementById('skin-color');
+const skinHex = document.getElementById('skin-hex');
+
+function selectChar(id) {
+  currentChar = id;
+  document.querySelectorAll('.char-btn').forEach(b => b.classList.toggle('active', b.dataset.id === id));
+  img.src = `assets/portraits/${id}.jpg`;
+  loadSliders();
+  updateRects();
+  updateOutput();
+}
+
+function loadSliders() {
+  const lm = landmarks[currentChar];
+  setSlider('le', lm.leftEye);
+  setSlider('re', lm.rightEye);
+  setSlider('mo', lm.mouth);
+  skinInput.value = lm.skinColor;
+  skinHex.textContent = lm.skinColor;
+}
+
+function setSlider(prefix, rect) {
+  ['x','y','w','h'].forEach(k => {
+    const el = document.getElementById(`${prefix}-${k}`);
+    el.value = rect[k];
+    document.getElementById(`${prefix}-${k}-val`).textContent = rect[k];
+  });
+}
+
+function readSlider(prefix) {
+  const r = {};
+  ['x','y','w','h'].forEach(k => {
+    r[k] = parseInt(document.getElementById(`${prefix}-${k}`).value);
+    document.getElementById(`${prefix}-${k}-val`).textContent = r[k];
+  });
+  return r;
+}
+
+function updateFromSliders() {
+  if (!currentChar) return;
+  landmarks[currentChar].leftEye = readSlider('le');
+  landmarks[currentChar].rightEye = readSlider('re');
+  landmarks[currentChar].mouth = readSlider('mo');
+  landmarks[currentChar].skinColor = skinInput.value;
+  skinHex.textContent = skinInput.value;
+  updateRects();
+  updateOutput();
+}
+
+function updateRects() {
+  if (!currentChar) return;
+  const lm = landmarks[currentChar];
+  posRect(rectLE, lm.leftEye);
+  posRect(rectRE, lm.rightEye);
+  posRect(rectMO, lm.mouth);
+  posFill(fillLE, lm.leftEye, lm.skinColor);
+  posFill(fillRE, lm.rightEye, lm.skinColor);
+  posFill(fillMO, lm.mouth, null);
+  document.documentElement.style.setProperty('--skin', lm.skinColor);
+}
+
+function posRect(el, rect) {
+  el.style.left = (rect.x * SCALE) + 'px';
+  el.style.top = (rect.y * SCALE) + 'px';
+  el.style.width = (rect.w * SCALE) + 'px';
+  el.style.height = (rect.h * SCALE) + 'px';
+}
+
+function posFill(el, rect, color) {
+  el.style.left = (rect.x * SCALE) + 'px';
+  el.style.top = (rect.y * SCALE) + 'px';
+  el.style.width = (rect.w * SCALE) + 'px';
+  el.style.height = (rect.h * SCALE) + 'px';
+  el.style.borderRadius = '50%';
+  if (color) el.style.backgroundColor = color;
+}
+
+function updateOutput() {
+  if (!currentChar) return;
+  const lm = landmarks[currentChar];
+  const s = `faceLandmarks: { leftEye: { x: ${lm.leftEye.x}, y: ${lm.leftEye.y}, w: ${lm.leftEye.w}, h: ${lm.leftEye.h} }, rightEye: { x: ${lm.rightEye.x}, y: ${lm.rightEye.y}, w: ${lm.rightEye.w}, h: ${lm.rightEye.h} }, mouth: { x: ${lm.mouth.x}, y: ${lm.mouth.y}, w: ${lm.mouth.w}, h: ${lm.mouth.h} }, skinColor: '${lm.skinColor}' },`;
+  output.value = s;
+}
+
+// Slider events
+document.querySelectorAll('input[type=range], input[type=color]').forEach(el => {
+  el.addEventListener('input', updateFromSliders);
+});
+
+// Copy buttons
+document.getElementById('copy-btn').onclick = () => {
+  output.select();
+  document.execCommand('copy');
+};
+
+document.getElementById('copy-all-btn').onclick = () => {
+  let all = '';
+  chars.forEach(id => {
+    const lm = landmarks[id];
+    all += `    // ${id}\n`;
+    all += `    faceLandmarks: { leftEye: { x: ${lm.leftEye.x}, y: ${lm.leftEye.y}, w: ${lm.leftEye.w}, h: ${lm.leftEye.h} }, rightEye: { x: ${lm.rightEye.x}, y: ${lm.rightEye.y}, w: ${lm.rightEye.w}, h: ${lm.rightEye.h} }, mouth: { x: ${lm.mouth.x}, y: ${lm.mouth.y}, w: ${lm.mouth.w}, h: ${lm.mouth.h} }, skinColor: '${lm.skinColor}' },\n\n`;
+  });
+  navigator.clipboard.writeText(all);
+  alert('All landmarks copied!');
+};
+
+// Crosshair
+const area = document.getElementById('portrait-area');
+const chH = document.getElementById('ch-h');
+const chV = document.getElementById('ch-v');
+const coordDisp = document.getElementById('coord-display');
+
+area.addEventListener('mousemove', e => {
+  const r = area.getBoundingClientRect();
+  const px = e.clientX - r.left;
+  const py = e.clientY - r.top;
+  chH.style.top = py + 'px';
+  chV.style.left = px + 'px';
+  const x180 = Math.round(px / SCALE);
+  const y180 = Math.round(py / SCALE);
+  coordDisp.textContent = `${x180}, ${y180} (180px) | ${Math.round(px)}, ${Math.round(py)} (360px)`;
+});
+
+// Drag support for rectangles
+['rect-leftEye', 'rect-rightEye', 'rect-mouth'].forEach(rectId => {
+  const el = document.getElementById(rectId);
+  let dragging = false, startX, startY, origX, origY;
+  
+  el.addEventListener('mousedown', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    const key = el.dataset.key;
+    const prefix = key === 'leftEye' ? 'le' : key === 'rightEye' ? 're' : 'mo';
+    origX = parseInt(document.getElementById(`${prefix}-x`).value);
+    origY = parseInt(document.getElementById(`${prefix}-y`).value);
+  });
+  
+  document.addEventListener('mousemove', e => {
+    if (!dragging || !currentChar) return;
+    const dx = Math.round((e.clientX - startX) / SCALE);
+    const dy = Math.round((e.clientY - startY) / SCALE);
+    const key = el.dataset.key;
+    const prefix = key === 'leftEye' ? 'le' : key === 'rightEye' ? 're' : 'mo';
+    document.getElementById(`${prefix}-x`).value = Math.max(0, Math.min(180, origX + dx));
+    document.getElementById(`${prefix}-y`).value = Math.max(0, Math.min(180, origY + dy));
+    updateFromSliders();
+  });
+  
+  document.addEventListener('mouseup', () => { dragging = false; });
+});
+
+// Select first character
+selectChar('aramais');
+</script>
+</body>
+</html>
